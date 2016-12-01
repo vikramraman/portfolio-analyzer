@@ -3,6 +3,7 @@ import helper
 import argparse
 import os
 import sys
+from tabulate import tabulate
 
 SYMBOL_IDX=0
 QTY_IDX=1
@@ -15,6 +16,12 @@ LONG_TAX_RATE=.15
 SHORT_TAX_RATE=.25
 CURRENT_SHORT_TAX_RATE=.28
 LONG_DAYS=365
+
+STOCK_HEADER = ['YEAR', 'SYMBOL', 'QTY', 'BUY_PRICE', 'SELL_PRICE', \
+                    'GROSS_PROFIT', 'NET_PROFIT']
+RESULTS_HEADER = ['TOTAL COST', 'TOTAL SALE', 'GROSS PROFIT', 'NET PROFIT', \
+                    'GROSS PROFIT %', 'NET PROFIT %']
+PROFIT_HEADER = ['YEAR', 'GROSS PROFIT', 'NET PROFIT']
 
 yearlyProfits = {}
 yearlyTaxedProfits = {}
@@ -33,6 +40,7 @@ def _analyze(rows):
     if not rows:
         raise "Invalid data input"
 
+    l = []
     for row in rows:
         symbol = row[SYMBOL_IDX]
         qty = float(row[QTY_IDX])
@@ -57,7 +65,8 @@ def _analyze(rows):
         _updateProfits(year, yearlyProfits, profit)
         _updateProfits(year, yearlyTaxedProfits, netProfit)
         _updateTransactions(buyDate, saleDate, yearlyTransactions)
-        print year, symbol, qty, buyRate, saleRate, profit, netProfit
+        l.append([year, symbol, qty, buyRate, saleRate, profit, netProfit])
+    helper.printTable(l, STOCK_HEADER)
 
 def _updateProfits(year, yearlyProfits, profit):
     sum = yearlyProfits.get(year, 0)
@@ -100,19 +109,22 @@ def doAnalyze(args):
             _analyze(data)
     _pprintData()
 
+def _getPercent(num, denom):
+    return "{percent:.2%}".format(percent=num/denom)
+
+def _printTransactions(d, header):
+    l = sorted([[k, v.get('bought', '-'), v.get('sold', '-')] for k,v in d.items()])
+    helper.printTable(l, header)
+
 def _pprintData():
-    print "\nResults:\n"
     totalProfit = totalSale - totalBuy
-    helper.printFloat("Total Cost", totalBuy)
-    helper.printFloat("Total Sale", totalSale)
-    helper.printFloat("Gross Profit", totalProfit)
-    helper.printFloat("Net Profit", totalNetProfit)
-    helper.printPercent("Gross profit %:", totalProfit, totalBuy)
-    helper.printPercent("Net profit %:", totalNetProfit, totalBuy, True)
-    helper.printFloat("Outstanding investments", currentInvested, True)
-    helper.printDict(yearlyProfits, "Gross profits:")
-    helper.printDict(yearlyTaxedProfits, "Net profits:")
-    helper.printDict(yearlyTransactions, "Transactions:")
+    pPercent = _getPercent(totalProfit, totalBuy)
+    npPercent = _getPercent(totalNetProfit, totalBuy)
+    table = [[totalBuy, totalSale, totalProfit, totalNetProfit, pPercent, npPercent]]
+    helper.printTable(table, RESULTS_HEADER)
+    helper.printDicts(yearlyProfits, yearlyTaxedProfits, PROFIT_HEADER)
+    _printTransactions(yearlyTransactions, ['YEAR', 'BUYS', 'SALES'])
+    helper.printFloat("CURRENT INVESTMENTS", currentInvested)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

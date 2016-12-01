@@ -1,6 +1,7 @@
 from datetime import date
 from datetime import datetime
 import pprint
+from tabulate import tabulate
 
 DATE_FORMAT="%m/%d/%Y"
 
@@ -24,20 +25,18 @@ def _getDate(dateVal):
         return datetime.today()
     return datetime.strptime(dateVal, DATE_FORMAT)
 
-def printPercent(descr, num, denom, newLine=False):
-    print descr,
-    print "{percent:.2%}".format(percent=num/denom)
-    _printNewLine(newLine)
-
-def printFloat(descr, value, newLine=False):
+def printFloat(descr, value):
     print "%s: %.2f" % (descr, value)
-    _printNewLine(newLine)
+    print
 
-def printDict(dikt, descr, newLine=True):
-    print descr
-    pprint.pprint(dikt)
-    _printNewLine(newLine)
+def printTable(l, header):
+    print tabulate(l, header, floatfmt=".2f")
+    print
 
-def _printNewLine(newLine):
-    if newLine:
-        print ""
+def printDict(d, header):
+    l = sorted([(k,v) for k,v in d.items()])
+    printTable(l, header)
+
+def printDicts(d1, d2, header):
+    l = sorted([[k, v, d2.get(k)] for k,v in d1.items()])
+    printTable(l, header)
