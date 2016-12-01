@@ -3,7 +3,6 @@ import helper
 import argparse
 import os
 import sys
-from tabulate import tabulate
 
 SYMBOL_IDX=0
 QTY_IDX=1
