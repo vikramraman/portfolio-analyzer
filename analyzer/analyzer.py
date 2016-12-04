@@ -3,6 +3,7 @@ import helper
 import argparse
 import os
 import sys
+import sheetsapi
 
 SYMBOL_IDX=0
 QTY_IDX=1
@@ -37,7 +38,7 @@ def _analyze(rows):
     global currentInvested
 
     if not rows:
-        raise "Invalid data input"
+        raise StandardError('Invalid data input')
 
     l = []
     for row in rows:
@@ -98,17 +99,35 @@ def _getNetProfit(profit, buyDate, saleDate):
 
 def doAnalyze(args):
     csvDir = args.csvDir
-    if not os.path.isdir(csvDir):
-        print "Invalid input: Please enter a valid directory"
-        sys.exit(1)
+    ids = args.sheets
 
+    if csvDir:
+        if not os.path.isdir(csvDir):
+            print "Invalid input: Please enter a valid directory: %s" % csvDir
+            sys.exit(1)
+        _parseCSV(csvDir)
+    if ids:
+        _parseSheets(ids)
+    _pprintData()
+
+def _parseSheets(ids):
+    if len(ids) == 1:
+        ids = ids[0].split(',')
+    for sheetID in ids:
+        data = sheetsapi.getRows(sheetID)
+        if not data:
+            continue
+        _analyze(data)
+
+def _parseCSV(csvDir):
     for file in os.listdir(csvDir):
         if file.endswith(".csv"):
             data = csvreader.read(csvDir + "/" + file)
             _analyze(data)
-    _pprintData()
 
 def _getPercent(num, denom):
+    if denom == 0:
+        return '0%'
     return "{percent:.2%}".format(percent=num/denom)
 
 def _printTransactions(d, header):
@@ -127,6 +146,10 @@ def _pprintData():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('csvDir', metavar='csvDir', type=str, help='CSV directory')
+    parser.add_argument('--csvDir', type=str, nargs='?', help='CSV directory')
+    parser.add_argument('--sheets', metavar='ID', type=str, nargs='+', help='Google spreadsheet IDs')
     args = parser.parse_args()
+
+    if not (args.csvDir or args.sheets):
+        parser.error('csvDir or sheets must be provided.')
     doAnalyze(args)
