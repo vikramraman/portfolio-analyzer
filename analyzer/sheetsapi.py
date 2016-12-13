@@ -14,7 +14,7 @@ SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly'
 CLIENT_SECRET_FILE = os.path.expanduser('~') + '/.credentials/client_secret.json'
 APPLICATION_NAME = 'Portfolio Analyzer'
 
-def _getCredentials():
+def _get_credentials():
     """
     Gets valid user credentials from storage.
 
@@ -40,11 +40,11 @@ def _getCredentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
-def _getService():
+def _get_service():
     """
     Creates a Google Sheets API service object.
     """
-    credentials = _getCredentials()
+    credentials = _get_credentials()
     http = credentials.authorize(httplib2.Http())
     discoveryUrl = ('https://sheets.googleapis.com/$discovery/rest?'
                     'version=v4')
@@ -52,44 +52,44 @@ def _getService():
                               discoveryServiceUrl=discoveryUrl)
     return service
 
-def getRows(spreadsheetID):
-    service = _getService()
-    titles = _getTitles(spreadsheetID)
+def parse_spreadsheet(sheetID):
+    service = _get_service()
+    titles = _get_titles(sheetID)
     rows = []
     for title in titles:
-        data = _getSheetData(spreadsheetID, title)
+        data = _parse_worksheet(sheetID, title)
         if data:
             rows.extend(data)
     return rows
 
-def _getSheetData(sheetID, title):
+def _parse_worksheet(sheetID, title):
     """
-    Gets the data for a given spreadsheetID and sheet title.
+    Gets the data for a given worksheet.
     """
-    result = _getSheet(sheetID, title)
+    result = _get_worksheet(sheetID, title)
     if not result:
         return None
 
     values = result.get('values', [])
     data = []
     for row in values:
-        symbol = _getRowData(row, 0)
-        qty = _getRowData(row, 1)
-        buyRate = _getRowData(row, 2)
-        buyDate = _getRowData(row, 4)
-        saleRate = _getRowData(row, 5)
-        saleDate = _getRowData(row, 7)
+        symbol = _get_row_data(row, 0)
+        qty = _get_row_data(row, 1)
+        buy_rate = _get_row_data(row, 2)
+        buy_date = _get_row_data(row, 4)
+        sale_rate = _get_row_data(row, 5)
+        sale_date = _get_row_data(row, 7)
         if symbol is None or qty is None:
             continue
-        data.append([symbol, qty, buyRate, buyDate, saleRate, saleDate])
+        data.append([symbol, qty, buy_rate, buy_date, sale_rate, sale_date])
     return data
 
-def _getTitles(sheetID):
+def _get_titles(sheetID):
     """
-    Gets a list of sheet titles for the given spreadsheetId.
+    Gets a list of worksheet titles for the given spreadsheetId.
     """
     names = []
-    service = _getService()
+    service = _get_service()
     result = service.spreadsheets().get(
                 spreadsheetId=sheetID, fields='sheets.properties').execute()
     if result:
@@ -98,22 +98,22 @@ def _getTitles(sheetID):
             names.append(prop['properties']['title'])
     return names[0:2]
 
-def _getSheet(sheetID, title):
-    service = _getService()
-    rangeName = title + '!A2:H'
+def _get_worksheet(sheetID, title):
+    service = _get_service()
+    range_name = title + '!A2:H'
     try:
         return service.spreadsheets().values().get(
-                    spreadsheetId=sheetID, range=rangeName).execute()
+                    spreadsheetId=sheetID, range=range_name).execute()
     except:
         return None
 
-def _getRowData(row, index):
+def _get_row_data(row, index):
     try:
-        return _cleanData(row[index])
+        return _clean_data(row[index])
     except IndexError:
         return None
 
-def _cleanData(data):
+def _clean_data(data):
     if data[0] == '$':
         return str(data[1:])
     return data

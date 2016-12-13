@@ -9,14 +9,14 @@ def read(filename):
         raise "Invalid CSV filename"
 
     out = []
-    with open(filename, 'rb') as csvFile:
-        fileReader = csv.reader(csvFile, delimiter=' ', quotechar='|')
-        for row in fileReader:
-            rowData = _parseRow(row)
-            if rowData:
-                out.append(rowData)
+    with open(filename, 'rb') as csv_file:
+        file_reader = csv.reader(csv_file, delimiter=' ', quotechar='|')
+        for row in file_reader:
+            row_data = _parse_row(row)
+            if row_data:
+                out.append(row_data)
     return out
 
-def _parseRow(row):
+def _parse_row(row):
     if row and len(row) == 1:
         return tuple(row[0].split(','))

@@ -5,38 +5,38 @@ from tabulate import tabulate
 
 DATE_FORMAT="%m/%d/%Y"
 
-def getYear(dateStr):
+def get_year(dateStr):
     if dateStr:
         return dateStr[-4:]
-    return _getCurrentYear()
+    return _get_current_year()
 
-def _getCurrentYear():
+def _get_current_year():
     #TODO: implement
     return '2016'
 
-def getDays(startDate, endDate):
-    start = _getDate(startDate)
-    end = _getDate(endDate)
+def get_days(startDate, endDate):
+    start = _get_date(startDate)
+    end = _get_date(endDate)
     delta = end-start
     return delta.days
 
-def _getDate(dateVal):
+def _get_date(dateVal):
     if not dateVal:
         return datetime.today()
     return datetime.strptime(dateVal, DATE_FORMAT)
 
-def printFloat(descr, value):
+def print_float(descr, value):
     print "%s: %.2f" % (descr, value)
     print
 
-def printTable(l, header):
+def print_table(l, header):
     print tabulate(l, header, floatfmt=".2f")
     print
 
-def printDict(d, header):
+def print_dict(d, header):
     l = sorted([(k,v) for k,v in d.items()])
-    printTable(l, header)
+    print_table(l, header)
 
-def printDicts(d1, d2, header):
+def print_dicts(d1, d2, header):
     l = sorted([[k, v, d2.get(k)] for k,v in d1.items()])
-    printTable(l, header)
+    print_table(l, header)
