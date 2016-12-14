@@ -83,50 +83,52 @@ def _increment_transaction(year, key, trans_dict):
     trans_dict[year] = dic
 
 def _get_tax_rate(buy_date, sale_date):
-    days_held = helper.get_days(buy_date, sale_date)
-    if days_held > LONG_DAYS:
-        return LONG_TAX_RATE
     #TODO: compute correctly based on income bracket
-    return SHORT_TAX_RATE
+    days_held = helper.get_days(buy_date, sale_date)
+    return LONG_TAX_RATE if days_held > LONG_DAYS else SHORT_TAX_RATE
 
 def _get_net_profit(profit, buy_date, sale_date):
     tax_rate = _get_tax_rate(buy_date, sale_date)
-    if profit <= 0:
-        return profit
-    return profit - (profit * tax_rate)
+    return profit if profit <= 0 else profit - (profit * tax_rate)
 
 def doAnalyze(args):
     csv_dir = args.csvDir
     ids = args.sheets
+    conf_file = args.conf
+
+    if not os.path.isfile(conf_file):
+        _exit_error("Invalid configuration file")
+    indices = helper.parse_properties(conf_file)
 
     if csv_dir:
         if not os.path.isdir(csv_dir):
-            print "Invalid input: Please enter a valid directory: %s" % csv_dir
-            sys.exit(1)
-        _parse_csv(csv_dir)
+            _exit_error("Invalid CSV directory")
+        _parse_csv(csv_dir, indices)
     if ids:
-        _parse_sheets(ids)
+        _parse_sheets(ids, indices)
     _pprint_data()
 
-def _parse_sheets(ids):
+def _parse_sheets(ids, indices):
     if len(ids) == 1:
         ids = ids[0].split(',')
     for sheetID in ids:
-        data = sheetsapi.parse_spreadsheet(sheetID)
+        data = sheetsapi.parse_spreadsheet(sheetID, indices)
         if not data:
             continue
         _analyze(data)
 
-def _parse_csv(csv_dir):
+def _parse_csv(csv_dir, indices):
     for file in os.listdir(csv_dir):
         if file.endswith(".csv"):
-            data = csvreader.read(csv_dir + "/" + file)
+            data = csvreader.read(csv_dir + "/" + file, indices)
             _analyze(data)
 
+def _exit_error(msg):
+    print msg
+    sys.exit(1)
+
 def _get_percent(num, denom):
-    if denom == 0:
-        return '0%'
-    return "{percent:.2%}".format(percent=num/denom)
+    return '0%' if denom == 0 else '{percent:.2%}'.format(percent=num/denom)
 
 def _print_transactions(d, header):
     l = sorted([[k, v.get('bought', '-'), v.get('sold', '-')] for k,v in d.items()])
@@ -146,8 +148,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--csvDir', type=str, nargs='?', help='CSV directory')
     parser.add_argument('--sheets', metavar='ID', type=str, nargs='+', help='Google spreadsheet IDs')
+    parser.add_argument('--conf', type=str, nargs='?', help='Configuration properties file')
     args = parser.parse_args()
 
     if not (args.csvDir or args.sheets):
         parser.error('csvDir or sheets must be provided.')
+    if not args.conf:
+        parser.error('Configuration properties file must be provided.')
     doAnalyze(args)

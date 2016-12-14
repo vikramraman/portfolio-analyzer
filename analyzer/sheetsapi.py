@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 import httplib2
 import os
@@ -7,6 +6,7 @@ from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
+import helper
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/sheets.googleapis.com-python-quickstart.json
@@ -52,51 +52,44 @@ def _get_service():
                               discoveryServiceUrl=discoveryUrl)
     return service
 
-def parse_spreadsheet(sheetID):
-    service = _get_service()
+def parse_spreadsheet(sheetID, indices):
+    """
+    Parses a given spreadsheet.
+    sheetID -- the google spreadsheet ID
+    indices -- dictionary mapping the six required fields to their indices
+    """
+    if not sheetID or not indices:
+        raise ValueError("Invalid input arguments")
+
     titles = _get_titles(sheetID)
     rows = []
     for title in titles:
-        data = _parse_worksheet(sheetID, title)
+        data = _parse_worksheet(sheetID, title, indices)
         if data:
             rows.extend(data)
     return rows
 
-def _parse_worksheet(sheetID, title):
+def _parse_worksheet(sheetID, title, indices):
     """
     Gets the data for a given worksheet.
+    sheetID -- the google spreadsheet ID
+    title -- the worksheet title
+    indices -- dictionary mapping the six required fields to their indices
     """
     result = _get_worksheet(sheetID, title)
-    if not result:
-        return None
-
-    values = result.get('values', [])
-    data = []
-    for row in values:
-        symbol = _get_row_data(row, 0)
-        qty = _get_row_data(row, 1)
-        buy_rate = _get_row_data(row, 2)
-        buy_date = _get_row_data(row, 4)
-        sale_rate = _get_row_data(row, 5)
-        sale_date = _get_row_data(row, 7)
-        if symbol is None or qty is None:
-            continue
-        data.append([symbol, qty, buy_rate, buy_date, sale_rate, sale_date])
-    return data
+    if result:
+        values = result.get('values', [])
+        return helper.get_rows(values, indices)
 
 def _get_titles(sheetID):
     """
     Gets a list of worksheet titles for the given spreadsheetId.
     """
-    names = []
     service = _get_service()
     result = service.spreadsheets().get(
                 spreadsheetId=sheetID, fields='sheets.properties').execute()
-    if result:
-        props = result['sheets']
-        for prop in props:
-            names.append(prop['properties']['title'])
-    return names[0:2]
+    titles = [d['properties']['title'] for d in result['sheets'] if result]
+    return titles[0:2]
 
 def _get_worksheet(sheetID, title):
     service = _get_service()
@@ -106,14 +99,3 @@ def _get_worksheet(sheetID, title):
                     spreadsheetId=sheetID, range=range_name).execute()
     except:
         return None
-
-def _get_row_data(row, index):
-    try:
-        return _clean_data(row[index])
-    except IndexError:
-        return None
-
-def _clean_data(data):
-    if data[0] == '$':
-        return str(data[1:])
-    return data
