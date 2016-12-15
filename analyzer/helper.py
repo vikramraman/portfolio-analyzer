@@ -1,6 +1,7 @@
 from datetime import date
 from datetime import datetime
 import pprint
+import math
 import ConfigParser
 from tabulate import tabulate
 
@@ -15,14 +16,18 @@ SALE_DATE_IDX = "sale.date.idx"
 PROP_KEYS = [SYMBOL_IDX, QTY_IDX, BUY_PRICE_IDX, BUY_DATE_IDX, SALE_PRICE_IDX, SALE_DATE_IDX]
 
 def get_year(dateStr):
-    return dateStr[-4:] if dateStr else _get_current_year()
+    return dateStr[-4:] if dateStr else get_current_year()
 
-def _get_current_year():
+def get_current_year():
     #TODO: implement
     return '2016'
 
-def get_days(startDate, endDate):
-    delta = _get_date(endDate) - _get_date(startDate)
+def get_years(start_date, end_date):
+    days = get_days(start_date, end_date)
+    return 1 if days <= 365 else int(get_year(end_date)) - int(get_year(start_date)) + 1
+
+def get_days(start_date, end_date):
+    delta = _get_date(end_date) - _get_date(start_date)
     return delta.days
 
 def _get_date(dateVal):
@@ -63,3 +68,21 @@ def _get_field(row, indices, key):
 
 def _strip_currency_symbol(data):
     return str(data[1:]) if data and data[0] == '$' else data
+
+def get_annual_rate(buy_rate, sale_rate, years):
+    """
+    Gets the annual rate of return given the buy price, sell price and years held.
+    """
+    p = sale_rate/buy_rate
+    return ( math.pow(p, 1.0/years)-1.0 ) * 100.0
+
+def get_compound_rate(yearly_returns):
+    """
+    Computes the geometric average aka compound average rate of return.
+    """
+    if not yearly_returns:
+        return 0.0
+    count = float(len(yearly_returns))
+    l = [1.0 + (x/100.0) for x in yearly_returns]
+    p = reduce(lambda x,y : x * y, l)
+    return ( math.pow(p, 1.0/count)-1.0 ) * 100.0
