@@ -15,19 +15,19 @@ An application to analyze the performance of a stock portfolio. Supports CSV and
 ## Configuration
 The input data source must contain the following fields:
 
-Symbol: The stock symbol
-Qty: Quantity of shares purchased
-Buy price: The purchase price per share
-Buy date: The date shares were purchased
-Sale price: The sale price
-Sale date: The sale date (Optional - can be empty)
+_Symbol_: The stock symbol  
+_Qty_: Quantity of shares purchased  
+_Buy Price_: The purchase price per share  
+_Buy Date_: The date shares were purchased  
+_Sale Price_: The sale price  
+_Sale Date_: The sale date (Optional - can be empty)
 
 The input configuration file maps the column indices for the above fields in the input data source. Please refer to tests/csv.properties and tests/sheet.properties for examples.
 
 ## Results
 The output contains several useful components.
 
-### Individual stock summary including annualized returns
+### Individual stock summary with annualized returns
 
 ```
 YEAR  SYMBOL       QTY    BUY_PRICE    SELL_PRICE    GROSS_PROFIT    NET_PROFIT    GROSS PROFIT %    ANNUAL %
@@ -46,7 +46,7 @@ YEAR  SYMBOL       QTY    BUY_PRICE    SELL_PRICE    GROSS_PROFIT    NET_PROFIT 
 ------------  ------------  --------------  ------------  ----------------  --------------  -------  ----------------
  12237.16     14352.25        2115.09      1576.23  17.29%            12.89%            13.83             13.48
  ```
-### Yearly Performance: Unsold stocks are hypothetically sold in the current year to compute performance.
+### Yearly Performance
 
 ```
  YEAR    GROSS PROFIT    NET PROFIT
