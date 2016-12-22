@@ -1,6 +1,6 @@
 # Simple Portfolio Analyzer
 
-A simple application to analyze the performance of a portfolio of stocks. Supports CSV and Google spreadsheet data sources.
+An application to analyze the performance of a stock portfolio. Supports CSV and Google spreadsheet data sources.
 
 ## Installation
 ```pip install tabulate```
