@@ -19,8 +19,7 @@ def get_year(dateStr):
     return dateStr[-4:] if dateStr else get_current_year()
 
 def get_current_year():
-    #TODO: implement
-    return '2016'
+    return str(datetime.today().year)
 
 def get_years(start_date, end_date):
     days = get_days(start_date, end_date)
