@@ -22,7 +22,7 @@ _Buy Date_: The date shares were purchased
 _Sale Price_: The sale price  
 _Sale Date_: The sale date (Optional - can be empty)
 
-The input configuration file maps the column indices for the above fields in the input data source. Please refer to tests/csv.properties and tests/sheet.properties for examples.
+The input configuration file maps the column indices for the above fields in the input data source. Refer tests/csv.properties and tests/sheet.properties for examples.
 
 ## Results
 The output contains several useful components.
